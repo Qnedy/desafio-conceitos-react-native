@@ -15,23 +15,34 @@ export default function App() {
   const [repositories, setRepositories] = useState([]);
 
   async function handleLikeRepository(id) {
-    // Implement "Like Repository" functionality
+    const response = await api.post(`/repositories/${id}/like`);
+
+    const newRepos = repositories.map(repo => {
+      if(repo.id === id) {
+        return response.data
+      } else {
+        return repo
+      }
+    });
+
+    setRepositories(newRepos);
+  }
+
+  function loadRepositories(){
+    api.get('/repositories').then(response => {
+      return setRepositories(response.data);
+    });
   }
 
   useEffect(() => {
-    api.get('/repositories').then(response => {
-      console.log(response.data);
-      return setRepositories(response.data);
-    });
-
-    
+    loadRepositories();
   }, []);
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#7159c1" />
       <SafeAreaView style={styles.container}>
-        <FlatList  data={repositories} keyExtractor={repository => repository.id} 
+        <FlatList  data={repositories} keyExtractor={repository => String(repository.id)} 
         renderItem={({ item: repository }) => (<View style={styles.repositoryContainer}><Text style={styles.repository}>{repository.title}</Text>
 
           <View style={styles.techsContainer}>
@@ -46,13 +57,13 @@ export default function App() {
               // Remember to replace "1" below with repository ID: {`repository-likes-${repository.id}`}
               testID={`repository-likes-${repository.id}`}
             >
-              {repository.likes}
+              {`${repository.likes} curtidas`}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => handleLikeRepository(1)}
+            onPress={() => handleLikeRepository(repository.id)}
             // Remember to replace "1" below with repository ID: {`like-button-${repository.id}`}
             testID={`like-button-${repository.id}`}
           >
